@@ -62,7 +62,7 @@ type database struct {
 	isClone bool
 }
 
-func fromDB(db *gorm.DB, isClone bool) *database {
+func FromDB(db *gorm.DB, isClone bool) IDatabase {
 	return &database{
 		DB:      db,
 		isClone: isClone,
@@ -74,7 +74,7 @@ func (db *database) Db() *gorm.DB {
 }
 
 func (db *database) Clone() dbx.IDatabase {
-	return fromDB(db.DB.New(), true)
+	return FromDB(db.DB.New(), true)
 }
 
 func (db *database) Close() {
@@ -91,8 +91,11 @@ func (db *database) Callbacks() dbx.ICallbacksManager {
 	panic("implement me")
 }
 
-func (db *database) SetLogger(log log.ILogger) {
-	db.DB.SetLogger(wrapLogger(log))
+func (db *database) SetLogger(l log.ILogger) {
+	db.DB.SetLogger(wrapLogger(l))
+	if l.GetLevel() == log.DebugLevel {
+		db.DB.Debug()
+	}
 }
 
 func (db *database) R(name string) dbx.IRepository {
@@ -108,11 +111,11 @@ func (db *database) Raw(script string, result interface{}) error {
 }
 
 func (db *database) Exec(script string, result interface{}) error {
-	return db.Raw(script, result)
+	return db.DB.Raw(script).Scan(result).Error
 }
 
-func (db *database) Run(script string, result interface{}) error {
-	return db.Raw(script, result)
+func (db *database) Run(script string) error {
+	return db.DB.Exec(script).Error
 }
 
 func (db *database) HasRepo(name string) bool {
@@ -124,19 +127,21 @@ func (db *database) CreateRepo(name string, models ...interface{}) error {
 }
 
 func (db *database) Migrate(dataDir string, failOnOrderMismatch ...bool) error {
-	db.DB.AutoMigrate(&common.MigrationInfo{})
 	fail := true
 	if len(failOnOrderMismatch) > 0 {
 		fail = failOnOrderMismatch[0]
 	}
-	return common.Migrate(dataDir, db, fail)
+	if err := common.Migrate(dataDir, db, fail); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (db *database) Scopes(funcs ...func(IDatabase) IDatabase) IDatabase {
 	fs := streams.From(funcs).Map(func(i interface{}) interface{} {
 		f := i.(func(IDatabase) IDatabase)
 		return func(x *gorm.DB) *gorm.DB {
-			return f(fromDB(x, false)).Db()
+			return f(FromDB(x, false)).Db()
 		}
 	}).ToArray()
 
@@ -147,7 +152,7 @@ func (db *database) Scopes(funcs ...func(IDatabase) IDatabase) IDatabase {
 }
 
 func (db *database) Unscoped() IDatabase {
-	return fromDB(db.DB.Unscoped(), false)
+	return FromDB(db.DB.Unscoped(), false)
 }
 
 func (db *database) Model(value interface{}) ITable {

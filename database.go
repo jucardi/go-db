@@ -34,7 +34,7 @@ type IDatabase interface {
 
 	// Run executes the provided script (sql script for SQL, javascript for MongoDB) and attempts to unmarshal the result.
 	// Aliases: Raw, Exec
-	Run(script string, result interface{}) error
+	Run(script string) error
 
 	// HasRepo check has table or not
 	HasRepo(name string) bool

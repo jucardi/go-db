@@ -89,15 +89,15 @@ func (d *database) R(name string) dbx.IRepository {
 }
 
 func (d *database) Raw(script string, result interface{}) error {
-	return d.Run(script, result)
+	return d.Exec(script, result)
 }
 
 func (d *database) Exec(script string, result interface{}) error {
-	return d.Run(script, result)
+	return d.DB().Run(bson.M{"eval": script}, result)
 }
 
-func (d *database) Run(script string, result interface{}) error {
-	return d.DB().Run(bson.M{"eval": script}, result)
+func (d *database) Run(script string) error {
+	return d.DB().Run(bson.M{"eval": script}, nil)
 }
 
 func (d *database) CreateRepo(name string, models ...interface{}) error {
@@ -118,7 +118,10 @@ func (d *database) Migrate(dataDir string, failOnOrderMismatch ...bool) error {
 	if len(failOnOrderMismatch) > 0 {
 		fail = failOnOrderMismatch[0]
 	}
-	return common.Migrate(dataDir, d, fail)
+	if err := common.Migrate(dataDir, d, fail); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (d *database) DB() *mgo.Database {

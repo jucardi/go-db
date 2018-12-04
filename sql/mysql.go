@@ -30,7 +30,7 @@ func Dial(cfg *dbx.DbConfig) (IDatabase, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to connect to mysql, %s", err.Error())
 	}
-	return fromDB(db, false), nil
+	return FromDB(db, false), nil
 }
 
 func getUrl(cfg *dbx.DbConfig) string {

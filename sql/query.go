@@ -144,7 +144,7 @@ func (q *query) Last(result interface{}) error {
 }
 
 func (q *query) All(result interface{}) error {
-	return q.prepare().First(result).Error
+	return q.prepare().Scan(result).Error
 }
 
 func (q *query) Distinct(key string, result interface{}) error {

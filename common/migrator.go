@@ -117,17 +117,15 @@ func Migrate(dataDir string, db dbx.IDatabase, failOnOrderMismatch bool) *dbx.Db
 			}
 		} else {
 
-			jsContent := string(content)
-			var resp map[string]interface{}
+			script := string(content)
 
-			if err := db.Run(jsContent, &resp); err != nil {
+			if err := db.Run(script); err != nil {
 				return &dbx.DbError{
 					Message: fmt.Sprintf("Unable to run command '%s'. %s", info.ScriptId, err.Error()),
 					Code:    dbx.ErrDbOperation,
 				}
 			}
 
-			logger.Get().Debug(resp)
 			info.Timestamp = time.Now()
 
 			if err := db.R(MigrationRepo).Insert(info); err != nil {
