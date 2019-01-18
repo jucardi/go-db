@@ -153,7 +153,7 @@ func (s *session) S() *mgo.Session {
 }
 
 func (s *session) DB(name string) IDatabase {
-	return fromDatabase(s.S().DB(name))
+	return FromDB(s.S().DB(name))
 }
 
 func (s *session) New() ISession {

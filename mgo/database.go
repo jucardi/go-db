@@ -137,7 +137,7 @@ func (d *database) Collection(name string) ICollection {
 }
 
 func (d *database) With(s ISession) IDatabase {
-	return fromDatabase(d.DB().With(s.S()))
+	return FromDB(d.DB().With(s.S()))
 }
 
 func (d *database) FindRef(ref *mgo.DBRef) IQuery {
@@ -158,7 +158,7 @@ func (d *database) Session() ISession {
 	return fromSession(d.DB().Session)
 }
 
-func fromDatabase(db *mgo.Database) IDatabase {
+func FromDB(db *mgo.Database) IDatabase {
 	if db == nil {
 		return nil
 	}

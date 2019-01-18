@@ -52,9 +52,13 @@ func Migrate(dataDir string, db dbx.IDatabase, failOnOrderMismatch bool) *dbx.Db
 
 	var toMigrate []MigrationInfo
 
-	for _, f := range streams.From(objs).OrderBy(func(a, b interface{}) int {
-		return strings.Compare(b.(os.FileInfo).Name(), a.(os.FileInfo).Name())
-	}, true).ToArray().([]os.FileInfo) {
+	for _, f := range streams.From(objs).
+		Filter(func(i interface{}) bool {
+			return strings.ToLower(i.(os.FileInfo).Name()) != "readme.md"
+		}).
+		OrderBy(func(a, b interface{}) int {
+			return strings.Compare(b.(os.FileInfo).Name(), a.(os.FileInfo).Name())
+		}, true).ToArray().([]os.FileInfo) {
 
 		if f.IsDir() {
 			continue

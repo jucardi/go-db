@@ -43,7 +43,7 @@ func Dial(cfg *dbx.DbConfig) (ISession, error) {
 
 	for i := 1; err != nil && i <= cfg.DialMaxRetries; i++ {
 		logger.Get().Errorf("Unable to connect to mongo on '%s': %v. Retrying in %v", cfg.Host, err, cfg.DialRetryTimeout)
-		time.Sleep(cfg.DialRetryTimeout)
+		time.Sleep(time.Duration(cfg.DialRetryTimeout)*time.Millisecond)
 		logger.Get().Warnf("Retrying to connect to mongo, attempt %d of %d", i, cfg.DialMaxRetries)
 		s, err = mgo.Dial(url)
 	}
