@@ -2,6 +2,7 @@ package mgo
 
 import (
 	"github.com/jucardi/go-db"
+	"github.com/jucardi/go-db/entity"
 	"gopkg.in/jucardi/go-streams.v1/streams"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -224,6 +225,9 @@ func (c *collection) Bulk() IBulk {
 // Insert **Override of mgo.collection.Insert** inserts one or more documents in the respective collection.
 // The override behavior converts the insert into a bulk operation if the length of documents is more than the allowed 1000 by MongoDB.
 func (c *collection) Insert(docs ...interface{}) error {
+	if err := entity.Invoke(entity.MethodBeforeCreate, docs...); err != nil {
+		return err
+	}
 	if len(docs) < mgoLim {
 		return c.C().Insert(docs...)
 	}

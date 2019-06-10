@@ -4,10 +4,19 @@ import "gopkg.in/jucardi/go-logger-lib.v1/log"
 
 const LoggerName = "jucardi/go-db"
 
-func Get() log.ILogger {
-	return log.Get(LoggerName)
+var logger ILogger = log.Get(LoggerName)
+
+func Get() ILogger {
+	return logger
 }
 
-func Set(logger log.ILogger) log.ILogger {
-	return log.Register(LoggerName, logger)
+func Set(l ILogger) {
+	logger = l
+}
+
+type ILogger interface {
+	Debug(args ...interface{})
+	Info(args ...interface{})
+	Warn(args ...interface{})
+	Error(args ...interface{})
 }

@@ -3,7 +3,7 @@ package testutils
 import (
 	"fmt"
 	. "github.com/jucardi/go-db"
-	. "github.com/jucardi/gotestx/testx"
+	. "github.com/jucardi/go-testx/testx"
 	"reflect"
 	"testing"
 )

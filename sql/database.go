@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/jucardi/go-db"
 	"github.com/jucardi/go-db/common"
@@ -83,7 +84,7 @@ func (db *database) Close() {
 	}
 
 	if err := db.DB.Close(); err != nil {
-		logger.Get().Errorf("Error occurred while closing SQL DB connection, %s", err.Error())
+		logger.Get().Error(fmt.Sprintf("Error occurred while closing SQL DB connection, %s", err.Error()))
 	}
 }
 

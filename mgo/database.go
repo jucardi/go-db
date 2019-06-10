@@ -88,6 +88,14 @@ func (d *database) R(name string) dbx.IRepository {
 	return d.C(name)
 }
 
+func (d *database) Collection(name string) ICollection {
+	return d.C(name)
+}
+
+func (d *database) C(name string) ICollection {
+	return fromCollection(d.DB().C(name))
+}
+
 func (d *database) Raw(script string, result interface{}) error {
 	return d.Exec(script, result)
 }
@@ -126,14 +134,6 @@ func (d *database) Migrate(dataDir string, failOnOrderMismatch ...bool) error {
 
 func (d *database) DB() *mgo.Database {
 	return d.Database
-}
-
-func (d *database) C(name string) ICollection {
-	return fromCollection(d.DB().C(name))
-}
-
-func (d *database) Collection(name string) ICollection {
-	return d.C(name)
 }
 
 func (d *database) With(s ISession) IDatabase {

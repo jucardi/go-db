@@ -1,6 +1,7 @@
 package mgo
 
 import (
+	"fmt"
 	"github.com/jucardi/go-db"
 	"github.com/jucardi/go-db/logger"
 	"gopkg.in/jucardi/go-strings.v1/stringx"
@@ -29,7 +30,7 @@ func (p *provider) Dial(cfg *dbx.DbConfig) (dbx.IDatabase, error) {
 
 func init() {
 	if err := dbx.Register("MongoDB", &provider{}, true); err != nil {
-		logger.Get().Panic("Unable to register MongoDB provider, ", err.Error())
+		logger.Get().Error("Unable to register MongoDB provider, ", err.Error())
 	}
 }
 
@@ -42,9 +43,9 @@ func Dial(cfg *dbx.DbConfig) (ISession, error) {
 	s, err := mgo.Dial(url)
 
 	for i := 1; err != nil && i <= cfg.DialMaxRetries; i++ {
-		logger.Get().Errorf("Unable to connect to mongo on '%s': %v. Retrying in %v", cfg.Host, err, cfg.DialRetryTimeout)
+		logger.Get().Error(fmt.Sprintf("Unable to connect to mongo on '%s': %v. Retrying in %v", cfg.Host, err, cfg.DialRetryTimeout))
 		time.Sleep(time.Duration(cfg.DialRetryTimeout)*time.Millisecond)
-		logger.Get().Warnf("Retrying to connect to mongo, attempt %d of %d", i, cfg.DialMaxRetries)
+		logger.Get().Warn(fmt.Sprintf("Retrying to connect to mongo, attempt %d of %d", i, cfg.DialMaxRetries))
 		s, err = mgo.Dial(url)
 	}
 

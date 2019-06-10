@@ -61,8 +61,8 @@ func (db *DatabaseMock) Exec(script string, result interface{}) error {
 	return db.ReturnError("Exec", script, result)
 }
 
-func (db *DatabaseMock) Run(script string, result interface{}) error {
-	return db.ReturnError("Run", script, result)
+func (db *DatabaseMock) Run(script string) error {
+	return db.ReturnError("Run", script)
 }
 
 func (db *DatabaseMock) HasRepo(name string) bool {

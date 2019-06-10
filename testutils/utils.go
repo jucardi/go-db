@@ -2,7 +2,7 @@ package testutils
 
 import (
 	. "github.com/jucardi/go-db"
-	"github.com/jucardi/gotestx/mock"
+	"github.com/jucardi/go-testx/mock"
 	"reflect"
 )
 

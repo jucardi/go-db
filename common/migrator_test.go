@@ -5,8 +5,8 @@ import (
 	"github.com/jucardi/go-db"
 	"github.com/jucardi/go-db/logger"
 	"github.com/jucardi/go-db/testutils"
-	"github.com/jucardi/gotestx/mock"
-	. "github.com/jucardi/gotestx/testx"
+	"github.com/jucardi/go-testx/mock"
+	. "github.com/jucardi/go-testx/testx"
 	"gopkg.in/jucardi/go-logger-lib.v1/log"
 	"testing"
 )

@@ -73,8 +73,8 @@ func (q *QueryMock) Distinct(key string, result interface{}) error {
 	return q.ReturnError("Distinct", key, result)
 }
 
-func (q *QueryMock) Update(update interface{}, result interface{}) error {
-	return q.ReturnError("Update", update, result)
+func (q *QueryMock) Update(update interface{}) error {
+	return q.ReturnError("Update", update)
 }
 
 func (q *QueryMock) Delete() error {

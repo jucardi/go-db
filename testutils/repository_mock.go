@@ -50,3 +50,7 @@ func (r *RepositoryMock) DropIndex(indexName string) error {
 func (r *RepositoryMock) AddUniqueIndex(indexName string, fields ...string) error {
 	return r.ReturnError("AddUniqueIndex", indexName, fields)
 }
+
+func (r *RepositoryMock) Delete(query interface{}, args ...interface{}) error {
+	return r.ReturnError("Delete", query, args)
+}

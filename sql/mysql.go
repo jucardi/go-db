@@ -17,7 +17,7 @@ func (p *provider) Dial(cfg *dbx.DbConfig) (dbx.IDatabase, error) {
 
 func init() {
 	if err := dbx.Register("MySQL", &provider{}, true); err != nil {
-		logger.Get().Panic("Unable to register MySQL provider, ", err.Error())
+		logger.Get().Error("Unable to register MySQL provider, ", err.Error())
 	}
 }
 
