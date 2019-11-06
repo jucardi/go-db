@@ -20,11 +20,26 @@ const (
 	MigrationRepo = "_migration"
 )
 
-func Migrate(dataDir string, db dbx.IDatabase, failOnOrderMismatch bool) *dbx.DbError {
+// Migrate begins a DB migration process by migrating the scripts located in the provided data dir and storing the
+// migration track in a migration repository ('_migration' by default)
+//
+//    {dataDir}              - The location where the migration scripts are contained
+//    {db}                   - The database client already initialized
+//    {failOnOrderMismatch}  - Indicates whether the migration should fail if the order of previously migrated scripts
+//                             have failed (removing or adding scripts between previously migrated scripts)
+//    {repoIdSuffix}         - (optional) A suffix to use for the repository name where the migration data is stored.
+//                             This is useful when sharing the same database instance with multiple services that own
+//                             their unique repositories (tables in SQL, collections in MongoDB)
+//
+func Migrate(dataDir string, db dbx.IDatabase, failOnOrderMismatch bool, repoIdSuffix ...string) *dbx.DbError {
 	var infos []*MigrationInfo
+	migrationRepo := MigrationRepo
+	if len(repoIdSuffix) > 0 && repoIdSuffix[0] != "" {
+		migrationRepo += "_" + repoIdSuffix[0]
+	}
 
-	if !db.HasRepo(MigrationRepo) {
-		if err := db.CreateRepo(MigrationRepo, &MigrationInfo{}); err != nil {
+	if !db.HasRepo(migrationRepo) {
+		if err := db.CreateRepo(migrationRepo, &MigrationInfo{}); err != nil {
 			return &dbx.DbError{
 				Message: fmt.Sprintf("Unable to create the required migration repository. %s", err.Error()),
 				Code:    dbx.ErrDbAccess | dbx.ErrDbOperation,
@@ -32,7 +47,7 @@ func Migrate(dataDir string, db dbx.IDatabase, failOnOrderMismatch bool) *dbx.Db
 		}
 	}
 
-	if err := db.R(MigrationRepo).Where(bson.M{}).Sort("filename").All(&infos); err != nil {
+	if err := db.R(migrationRepo).Where(bson.M{}).Sort("filename").All(&infos); err != nil {
 		return &dbx.DbError{
 			Message: fmt.Sprintf("Unable to read Database info. %s", err.Error()),
 			Code:    dbx.ErrDbAccess | dbx.ErrDbOperation,
@@ -132,7 +147,7 @@ func Migrate(dataDir string, db dbx.IDatabase, failOnOrderMismatch bool) *dbx.Db
 
 			info.Timestamp = time.Now()
 
-			if err := db.R(MigrationRepo).Insert(info); err != nil {
+			if err := db.R(migrationRepo).Insert(info); err != nil {
 				return &dbx.DbError{
 					Message: fmt.Sprintf("Unable to save migration info for '%s'", info.ScriptId),
 					Code:    dbx.ErrDbAccess | dbx.ErrDbOperation,
