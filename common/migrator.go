@@ -4,21 +4,45 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"github.com/jucardi/go-db"
-	"github.com/jucardi/go-db/logger"
-	"gopkg.in/jucardi/go-osx.v1/paths"
-	"gopkg.in/jucardi/go-streams.v1/streams"
-	"gopkg.in/mgo.v2/bson"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/jucardi/go-db"
+	"github.com/jucardi/go-db/logger"
+	"gopkg.in/jucardi/go-osx.v1/paths"
+	"gopkg.in/jucardi/go-streams.v1/streams"
+	"gopkg.in/mgo.v2/bson"
 )
 
 const (
 	MigrationRepo = "_migration"
 )
+
+type Migrator struct {
+	// Db is the database client already initialized
+	Db dbx.IDatabase
+
+	// DataDir is the location where the migration scripts are contained
+	DataDir string
+
+	// FailOnOrderMismatch indicates whether the migration should fail if the order of previously migrated scripts
+	FailOnOrderMismatch bool
+
+	// RepoIdSuffix is an optional suffix to use for the repository name where the migration data is stored. This is
+	// useful when sharing the same database instance with multiple services that own their unique repositories (tables
+	// in SQL, collections in MongoDB)
+	RepoIdSuffix string
+
+	// ScriptExecutor is a custom script executor to run the scripts for a migration. If not provided uses `Db.Run`
+	//
+	// This custom executor is added for scenarios where Db.Run would not work as expected, for example using a MongoDB
+	// client with AWS DocumentDB where `eval` is not supported, a custom executor using the `mongo` shell CLI could be
+	// implemented instead.
+	ScriptExecutor ScriptExecutor
+}
 
 // Migrate begins a DB migration process by migrating the scripts located in the provided data dir and storing the
 // migration track in a migration repository ('_migration' by default)
@@ -32,14 +56,28 @@ const (
 //                             their unique repositories (tables in SQL, collections in MongoDB)
 //
 func Migrate(dataDir string, db dbx.IDatabase, failOnOrderMismatch bool, repoIdSuffix ...string) *dbx.DbError {
+	migrator := &Migrator{
+		Db:                  db,
+		DataDir:             dataDir,
+		FailOnOrderMismatch: failOnOrderMismatch,
+	}
+	if len(repoIdSuffix) > 0 {
+		migrator.RepoIdSuffix = repoIdSuffix[0]
+	}
+	return migrator.Migrate()
+}
+
+// Migrate begins a DB migration process by migrating the scripts with the configuration contained my the *Migrator
+// instance.
+func (m *Migrator) Migrate() *dbx.DbError {
 	var infos []*MigrationInfo
 	migrationRepo := MigrationRepo
-	if len(repoIdSuffix) > 0 && repoIdSuffix[0] != "" {
-		migrationRepo += "_" + repoIdSuffix[0]
+	if m.RepoIdSuffix != "" {
+		migrationRepo += "_" + m.RepoIdSuffix
 	}
 
-	if !db.HasRepo(migrationRepo) {
-		if err := db.CreateRepo(migrationRepo, &MigrationInfo{}); err != nil {
+	if !m.Db.HasRepo(migrationRepo) {
+		if err := m.Db.CreateRepo(migrationRepo, &MigrationInfo{}); err != nil {
 			return &dbx.DbError{
 				Message: fmt.Sprintf("Unable to create the required migration repository. %s", err.Error()),
 				Code:    dbx.ErrDbAccess | dbx.ErrDbOperation,
@@ -47,14 +85,14 @@ func Migrate(dataDir string, db dbx.IDatabase, failOnOrderMismatch bool, repoIdS
 		}
 	}
 
-	if err := db.R(migrationRepo).Where(bson.M{}).Sort("filename").All(&infos); err != nil {
+	if err := m.Db.R(migrationRepo).Where(bson.M{}).Sort("filename").All(&infos); err != nil {
 		return &dbx.DbError{
 			Message: fmt.Sprintf("Unable to read Database info. %s", err.Error()),
 			Code:    dbx.ErrDbAccess | dbx.ErrDbOperation,
 		}
 	}
 
-	objs, err := ioutil.ReadDir(dataDir)
+	objs, err := ioutil.ReadDir(m.DataDir)
 
 	if err != nil {
 		return &dbx.DbError{
@@ -80,7 +118,7 @@ func Migrate(dataDir string, db dbx.IDatabase, failOnOrderMismatch bool, repoIdS
 		}
 
 		logger.Get().Info("Migrating file ", f.Name())
-		fullPath := paths.Combine(dataDir, f.Name())
+		fullPath := paths.Combine(m.DataDir, f.Name())
 		hash, hashErr := computeHash(fullPath)
 
 		if hashErr != nil {
@@ -98,7 +136,7 @@ func Migrate(dataDir string, db dbx.IDatabase, failOnOrderMismatch bool, repoIdS
 				}).
 			First(); inf != nil {
 
-			if foundNonMigrated && failOnOrderMismatch {
+			if foundNonMigrated && m.FailOnOrderMismatch {
 				return &dbx.DbError{
 					Message: fmt.Sprintf("Non-Migrated file found before '%s' which has been migrated. Order import failed, unable to proceed.", f.Name()),
 					Code:    dbx.ErrMigrationFailed,
@@ -127,8 +165,13 @@ func Migrate(dataDir string, db dbx.IDatabase, failOnOrderMismatch bool, repoIdS
 		}
 	}
 
+	executor := m.Db.Run
+	if m.ScriptExecutor != nil {
+		executor = m.ScriptExecutor
+	}
+
 	for _, info := range toMigrate {
-		fullPath := paths.Combine(dataDir, info.ScriptId)
+		fullPath := paths.Combine(m.DataDir, info.ScriptId)
 		if content, err := ioutil.ReadFile(fullPath); err != nil {
 			return &dbx.DbError{
 				Message: fmt.Sprintf("Unable to read data file '%s': %s", info.ScriptId, err.Error()),
@@ -138,7 +181,7 @@ func Migrate(dataDir string, db dbx.IDatabase, failOnOrderMismatch bool, repoIdS
 
 			script := string(content)
 
-			if err := db.Run(script); err != nil {
+			if err := executor(script); err != nil {
 				return &dbx.DbError{
 					Message: fmt.Sprintf("Unable to run command '%s'. %s", info.ScriptId, err.Error()),
 					Code:    dbx.ErrDbOperation,
@@ -147,7 +190,7 @@ func Migrate(dataDir string, db dbx.IDatabase, failOnOrderMismatch bool, repoIdS
 
 			info.Timestamp = time.Now()
 
-			if err := db.R(migrationRepo).Insert(info); err != nil {
+			if err := m.Db.R(migrationRepo).Insert(info); err != nil {
 				return &dbx.DbError{
 					Message: fmt.Sprintf("Unable to save migration info for '%s'", info.ScriptId),
 					Code:    dbx.ErrDbAccess | dbx.ErrDbOperation,
