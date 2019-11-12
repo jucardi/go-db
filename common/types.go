@@ -11,5 +11,3 @@ type MigrationInfo struct {
 	Hash      string    `bson:"hash"`
 	Timestamp time.Time `bson:"timestamp"`
 }
-
-type ScriptExecutor func(script string) error

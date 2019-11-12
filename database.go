@@ -24,16 +24,10 @@ type IDatabase interface {
 	// Repo returns an instance of a repository (table if SQL, collection if Mongo). Alias 'R'
 	Repo(name string) IRepository
 
-	// Raw executes the provided script (sql script for SQL, javascript for MongoDB) and attempts to unmarshal the result.
-	// Aliases: Exec, Run
-	Raw(script string, result interface{}) error
-
 	// Exec executes the provided script (sql script for SQL, javascript for MongoDB) and attempts to unmarshal the result.
-	// Aliases: Raw, Run
 	Exec(script string, result interface{}) error
 
-	// Run executes the provided script (sql script for SQL, javascript for MongoDB) and attempts to unmarshal the result.
-	// Aliases: Raw, Exec
+	// Run executes the provided script (sql script for SQL, javascript for MongoDB)
 	Run(script string) error
 
 	// HasRepo check has table or not
@@ -45,4 +39,7 @@ type IDatabase interface {
 
 	// Migrate starts a migration process using the scripts located in the 'dataDir'
 	Migrate(dataDir string, failOnOrderMismatch ...bool) error
+
+	// SetScriptExecutor sets a custom script executor to be used when running Exec
+	SetScriptExecutor(executor ScriptExecutor)
 }

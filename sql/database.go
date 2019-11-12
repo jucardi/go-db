@@ -60,7 +60,8 @@ type IDatabase interface {
 
 type database struct {
 	*gorm.DB
-	isClone bool
+	isClone  bool
+	executor dbx.ScriptExecutor
 }
 
 func FromDB(db *gorm.DB, isClone bool) IDatabase {
@@ -107,15 +108,15 @@ func (db *database) Repo(name string) dbx.IRepository {
 	return db.Table(name)
 }
 
-func (db *database) Raw(script string, result interface{}) error {
-	return db.Exec(script, result)
-}
-
 func (db *database) Exec(script string, result interface{}) error {
-	return db.DB.Raw(script).Scan(result).Error
+	// TODO: map result
+	return db.DB.Exec(script).Error
 }
 
 func (db *database) Run(script string) error {
+	if db.executor != nil {
+		return db.executor(script)
+	}
 	return db.DB.Exec(script).Error
 }
 
@@ -132,10 +133,11 @@ func (db *database) Migrate(dataDir string, failOnOrderMismatch ...bool) error {
 	if len(failOnOrderMismatch) > 0 {
 		fail = failOnOrderMismatch[0]
 	}
-	if err := common.Migrate(dataDir, db, fail); err != nil {
-		return err
-	}
-	return nil
+	return common.Migrate(dataDir, db, fail)
+}
+
+func (db *database) SetScriptExecutor(executor dbx.ScriptExecutor) {
+	db.executor = executor
 }
 
 func (db *database) Scopes(funcs ...func(IDatabase) IDatabase) IDatabase {

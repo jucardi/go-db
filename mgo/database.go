@@ -61,6 +61,7 @@ type IDatabase interface {
 
 type database struct {
 	*mgo.Database
+	executor dbx.ScriptExecutor
 }
 
 func (d *database) Clone() dbx.IDatabase {
@@ -96,15 +97,14 @@ func (d *database) C(name string) ICollection {
 	return fromCollection(d.DB().C(name))
 }
 
-func (d *database) Raw(script string, result interface{}) error {
-	return d.Exec(script, result)
-}
-
 func (d *database) Exec(script string, result interface{}) error {
 	return d.DB().Run(bson.M{"eval": script}, result)
 }
 
 func (d *database) Run(script string) error {
+	if d.executor != nil {
+		return d.executor(script)
+	}
 	return d.DB().Run(bson.M{"eval": script}, nil)
 }
 
@@ -126,10 +126,11 @@ func (d *database) Migrate(dataDir string, failOnOrderMismatch ...bool) error {
 	if len(failOnOrderMismatch) > 0 {
 		fail = failOnOrderMismatch[0]
 	}
-	if err := common.Migrate(dataDir, d, fail); err != nil {
-		return err
-	}
-	return nil
+	return common.Migrate(dataDir, d, fail)
+}
+
+func (d *database) SetScriptExecutor(executor dbx.ScriptExecutor) {
+	d.executor = executor
 }
 
 func (d *database) DB() *mgo.Database {

@@ -53,10 +53,6 @@ func (db *DatabaseMock) Repo(name string) IRepository {
 	return db.returnRepository("Repo", name)
 }
 
-func (db *DatabaseMock) Raw(script string, result interface{}) error {
-	return db.ReturnError("Raw", script, result)
-}
-
 func (db *DatabaseMock) Exec(script string, result interface{}) error {
 	return db.ReturnError("Exec", script, result)
 }
@@ -75,4 +71,8 @@ func (db *DatabaseMock) CreateRepo(name string, ref ...interface{}) error {
 
 func (db *DatabaseMock) Migrate(dataDir string, failOnOrderMismatch ...bool) error {
 	return db.ReturnError("Migrate", dataDir, failOnOrderMismatch)
+}
+
+func (db *DatabaseMock) SetScriptExecutor(executor ScriptExecutor) {
+	db.Invoke("SetScriptExecutor")
 }

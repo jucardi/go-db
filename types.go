@@ -29,3 +29,5 @@ type DbConfig struct {
 	// DialRetryTimeout defines the timeout in milliseconds between retries when dialing to a db
 	DialRetryTimeout int64 `json:"dial_retry_timeout" yaml:"dial_retry_timeout"`
 }
+
+type ScriptExecutor func(script string) error

@@ -41,7 +41,7 @@ type Migrator struct {
 	// This custom executor is added for scenarios where Db.Run would not work as expected, for example using a MongoDB
 	// client with AWS DocumentDB where `eval` is not supported, a custom executor using the `mongo` shell CLI could be
 	// implemented instead.
-	ScriptExecutor ScriptExecutor
+	ScriptExecutor dbx.ScriptExecutor
 }
 
 // Migrate begins a DB migration process by migrating the scripts located in the provided data dir and storing the
@@ -55,7 +55,7 @@ type Migrator struct {
 //                             This is useful when sharing the same database instance with multiple services that own
 //                             their unique repositories (tables in SQL, collections in MongoDB)
 //
-func Migrate(dataDir string, db dbx.IDatabase, failOnOrderMismatch bool, repoIdSuffix ...string) *dbx.DbError {
+func Migrate(dataDir string, db dbx.IDatabase, failOnOrderMismatch bool, repoIdSuffix ...string) error {
 	migrator := &Migrator{
 		Db:                  db,
 		DataDir:             dataDir,
@@ -69,7 +69,7 @@ func Migrate(dataDir string, db dbx.IDatabase, failOnOrderMismatch bool, repoIdS
 
 // Migrate begins a DB migration process by migrating the scripts with the configuration contained my the *Migrator
 // instance.
-func (m *Migrator) Migrate() *dbx.DbError {
+func (m *Migrator) Migrate() error {
 	var infos []*MigrationInfo
 	migrationRepo := MigrationRepo
 	if m.RepoIdSuffix != "" {
