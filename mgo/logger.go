@@ -1,6 +1,6 @@
 package mgo
 
-import "gopkg.in/jucardi/go-logger-lib.v1/log"
+import "github.com/jucardi/go-logger-lib/log"
 
 type mgoLogger struct {
 	logger log.ILogger

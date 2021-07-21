@@ -1,6 +1,6 @@
 package sql
 
-import "gopkg.in/jucardi/go-logger-lib.v1/log"
+import "github.com/jucardi/go-logger-lib/log"
 
 type sqlLogger struct {
 	logger log.ILogger

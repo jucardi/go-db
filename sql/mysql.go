@@ -5,7 +5,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/jucardi/go-db"
 	"github.com/jucardi/go-db/logger"
-	"gopkg.in/jucardi/go-strings.v1/stringx"
+	"github.com/jucardi/go-strings/stringx"
 )
 
 type provider struct {

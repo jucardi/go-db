@@ -1,7 +1,7 @@
 package dbx
 
 import (
-	"gopkg.in/jucardi/go-logger-lib.v1/log"
+	"github.com/jucardi/go-logger-lib/log"
 )
 
 // IDatabase ...

@@ -12,8 +12,8 @@ import (
 
 	"github.com/jucardi/go-db"
 	"github.com/jucardi/go-db/logger"
-	"gopkg.in/jucardi/go-osx.v1/paths"
-	"gopkg.in/jucardi/go-streams.v1/streams"
+	"github.com/jucardi/go-osx/paths"
+	"github.com/jucardi/go-streams/streams"
 	"gopkg.in/mgo.v2/bson"
 )
 

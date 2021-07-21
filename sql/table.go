@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"github.com/jinzhu/gorm"
 	"github.com/jucardi/go-db"
-	"gopkg.in/jucardi/go-strings.v1/stringx"
+	"github.com/jucardi/go-strings/stringx"
 	"reflect"
 )
 

@@ -7,7 +7,7 @@ import (
 	"github.com/jucardi/go-db/testutils"
 	"github.com/jucardi/go-testx/mock"
 	. "github.com/jucardi/go-testx/testx"
-	"gopkg.in/jucardi/go-logger-lib.v1/log"
+	"github.com/jucardi/go-logger-lib/log"
 	"testing"
 )
 
@@ -40,7 +40,9 @@ func TestReadMigrateCollectionFailed(t *testing.T) {
 
 		err := Migrate(migrationPath, db, true)
 		ShouldError(err)
-		ShouldBeTrue(err.Is(dbx.ErrDbOperation))
+		ex, ok := err.(*dbx.DbError)
+		ShouldBeTrue(ok)
+		ShouldBeTrue(ex.Is(dbx.ErrDbOperation))
 		ShouldEqual("Unable to read Database info. "+msg, err.Error())
 
 		ShouldEqual(1, repo.Times("Where"))
@@ -60,7 +62,9 @@ func TestReadScriptPathFailed(t *testing.T) {
 	Convey("Migrate Failed - DB Operation", t, func() {
 		err := Migrate(path, db, true)
 		ShouldError(err)
-		ShouldBeTrue(err.Is(dbx.ErrFileAccess))
+		ex, ok := err.(*dbx.DbError)
+		ShouldBeTrue(ok)
+		ShouldBeTrue(ex.Is(dbx.ErrFileAccess))
 		ShouldEqual("Unable to access scripts path. open "+path+": no such file or directory", err.Error())
 
 		ShouldEqual(1, repo.Times("Where"))

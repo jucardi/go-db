@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/jucardi/go-db"
 	"github.com/jucardi/go-db/logger"
-	"gopkg.in/jucardi/go-strings.v1/stringx"
+	"github.com/jucardi/go-strings/stringx"
 	"time"
 	"gopkg.in/mgo.v2"
 )

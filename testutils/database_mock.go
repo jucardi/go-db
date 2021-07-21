@@ -2,7 +2,7 @@ package testutils
 
 import (
 	. "github.com/jucardi/go-db"
-	"gopkg.in/jucardi/go-logger-lib.v1/log"
+	"github.com/jucardi/go-logger-lib/log"
 )
 
 // All functions that return IQuery to easily initialize

@@ -4,8 +4,8 @@ import (
 	"github.com/jucardi/go-db"
 	"github.com/jucardi/go-db/common"
 	l "github.com/jucardi/go-db/logger"
-	"gopkg.in/jucardi/go-logger-lib.v1/log"
-	"gopkg.in/jucardi/go-streams.v1/streams"
+	"github.com/jucardi/go-logger-lib/log"
+	"github.com/jucardi/go-streams/streams"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )

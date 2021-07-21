@@ -2,8 +2,8 @@ package dbx
 
 import (
 	"errors"
-	"gopkg.in/jucardi/go-beans.v1/beans"
-	"gopkg.in/jucardi/go-strings.v1/stringx"
+	"github.com/jucardi/go-beans/beans"
+	"github.com/jucardi/go-strings/stringx"
 )
 
 type IDbProvider interface {

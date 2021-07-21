@@ -1,6 +1,6 @@
 package logger
 
-import "gopkg.in/jucardi/go-logger-lib.v1/log"
+import "github.com/jucardi/go-logger-lib/log"
 
 const LoggerName = "jucardi/go-db"
 
